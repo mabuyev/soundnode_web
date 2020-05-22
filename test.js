@@ -2,7 +2,8 @@ document.getElementById("test").innerHTML = "WebSocket is not connected";
 
 const msg_types = {
     EVT: 0,
-    CMD: 1
+    CMD: 1,
+    RESP: 2
 };
 
 const evt_ids = {
@@ -10,25 +11,55 @@ const evt_ids = {
     MEDIA_STATUS: 1
 };
 
-var websocket = new WebSocket('ws://' + location.hostname + '/');
-var slider = document.getElementById("myRange");
-
-slider.oninput = function () {
-    websocket.send("L" + slider.value);
+ const command = {
+        CmdPlay: 0,
+        CmdStop: 1,
+        CmdPause: 2,
+        CmdResume: 3,
+        CmdMute: 4,
+        CmdUnmute: 5,
+        CmdNext: 6,
+        CmdPrev: 7         
+    };
+    
+const target = {
+        CmdTargetPlayer: 0,
+        CmdTargetMedia: 1
 };
 
-function sendMsg() {
-    websocket.send('L50');
-    console.log('Sent message to websocket');
-}
+const websocket = new WebSocket('ws://' + location.hostname + '/');
+const slider = document.getElementById("myRange");
+const prbutton = document.getElementById("prbutton");
+
+slider.oninput = function () {
+
+};
 
 function sendText(text) {
-    websocket.send("M" + text);
+    var cmdObj = new Object();
+    cmdObj.target = target.CmdTargetPlayer;
+    cmdObj.cmd = command.CmdPlay;
+    cmdObj.uri = text;  
+    websocket.send(JSON.stringify(cmdObj));
+};
+
+function sendPauseResume() {
+    var cmd = prbutton.innerHTML;
+    var cmdObj = new Object();
+    cmdObj.target = target.CmdTargetPlayer;
+    
+    if(cmd === "Pause") {
+        cmdObj.cmd = command.CmdPause;
+        prbutton.disabled = true;
+    } else if(cmd === "Resume") {
+        cmdObj.cmd = command.CmdResume;  
+        prbutton.disabled = true;
+    }
+    websocket.send(JSON.stringify(cmdObj));
 }
 
 websocket.onopen = function (evt) {
     console.log('WebSocket connection opened');
-    websocket.send("It's open! Hooray!!!");
     document.getElementById("test").innerHTML = "WebSocket is connected!";
 };
 
@@ -40,20 +71,25 @@ websocket.onmessage = function (evt) {
         case msg_types.EVT:
         switch (obj.id) {
             case evt_ids.SYS_STATUS:
-                value = parseInt(obj.cpu, 10);
-                slider.value = value;
                 document.getElementById("status").innerHTML = msg;
                 break;
             case evt_ids.MEDIA_STATUS:
                 document.getElementById("output").innerHTML = msg;
+                document.getElementById("prbutton").innerHTML = obj.paused === 1 ? 'Resume' : 'Pause';
+                prbutton.disabled = false;
+                slider.value = obj.pos/obj.dur;
                 break;
             default:
-                console.log("Not implemented");
+                console.log("Message ID not implemented: " + obj.id);
                 break;
         }
-        default:
-            console.log("Not implemented");
-            break;
+        break;
+    case msg_types.RESP:
+        console.log("Response: " + msg);
+        break;
+    default:
+        console.log("Message type not implemented: " + obj.type);
+        break;
     }
 };
 
