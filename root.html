@@ -8,19 +8,55 @@
 <body>
 <header>
   <h2>Sound Node</h2>
-  <button type="button" id="prbutton" onclick="sendPauseResume()">Pause</button>
 </header>
 <article>
-<p>
+<p id="stitle">
         Playing:
 </p>
 <div class="slidecontainer">
   <input type="range" min="0" max="100" value="0" class="slider" id="myRange">
 </div>
+<br>
 <form id="frm1" action="#">
-  Send text: <input type="text" name="ftext"><br>
-  <button type="button" onclick="sendText(document.getElementsByName('ftext')[0].value);">Send</button>
+  Play: <input type="text" name="ftext"><br>
 </form>
+<br>
+<div class="btn-group">
+<button id="play" onclick="sendPlayResume(document.getElementsByName('ftext')[0].value);">
+        <svg width="100" height="100">
+  			<circle cx="50" cy="50" r="45" stroke="green" stroke-width="5" fill-opacity="0.0" />
+            <polygon points="38,25 75,50 38,75" stroke="green" stroke-width="5" fill="green" />
+		</svg>
+    </button>
+    <button id="pause" onclick="sendPause()">
+        <svg width="100" height="100">
+  			<circle cx="50" cy="50" r="45" stroke="green" stroke-width="5" fill-opacity="0.0" />
+            <polygon points="35,30 42,30 42,70 35,70" stroke="green" stroke-width="3" fill="green" />
+            <polygon points="58,30 65,30 65,70 58,70" stroke="green" stroke-width="3" fill="green" />
+		</svg>
+    </button>
+    <button id="stop" onclick="sendStop()">
+        <svg width="100" height="100">
+  			<circle cx="50" cy="50" r="45" stroke="green" stroke-width="5" fill-opacity="0.0" />
+            <polygon points="30,30 70,30 70,70 30,70" stroke="green" stroke-width="3" fill="green" />
+		</svg>
+    </button>
+    <button id="mute" onclick="sendMute()">
+        <svg width="100" height="100">
+  			<circle cx="50" cy="50" r="45" stroke="green" stroke-width="5" fill-opacity="0.0" />
+            <polygon points="30,40 42,40 42,60 30,60" stroke="green" stroke-width="1" fill="green" />
+            <polygon points="42,40 62,25 62,75 42,60" stroke="green" stroke-width="1" fill="green" />
+            <polygon points="80,20 20,80" stroke="green" stroke-width="5" fill="green" />
+		</svg>
+    </button>
+    <button id="unmute" onclick="sendUnmute()">
+        <svg width="100" height="100">
+  			<circle cx="50" cy="50" r="45" stroke="green" stroke-width="5" fill-opacity="0.0" />
+            <polygon points="30,40 42,40 42,60 30,60" stroke="green" stroke-width="1" fill="green" />
+            <polygon points="42,40 62,25 62,75 42,60" stroke="green" stroke-width="1" fill="green" />
+		</svg>
+    </button>
+</div>
 <p id="test"></p>
 <p id="output"></p>
 

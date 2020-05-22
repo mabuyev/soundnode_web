@@ -29,32 +29,53 @@ const target = {
 
 const websocket = new WebSocket('ws://' + location.hostname + '/');
 const slider = document.getElementById("myRange");
-const prbutton = document.getElementById("prbutton");
+var mediaStatus = new Object();
 
 slider.oninput = function () {
 
 };
 
-function sendText(text) {
+function sendPlayResume(text) {
     var cmdObj = new Object();
     cmdObj.target = target.CmdTargetPlayer;
-    cmdObj.cmd = command.CmdPlay;
-    cmdObj.uri = text;  
+    if(mediaStatus.paused === 1) {
+        cmdObj.cmd = command.CmdResume;
+    } else {
+        cmdObj.cmd = command.CmdPlay;
+        cmdObj.uri = text;
+    }
     websocket.send(JSON.stringify(cmdObj));
 };
 
-function sendPauseResume() {
-    var cmd = prbutton.innerHTML;
+function sendPause() {
     var cmdObj = new Object();
     cmdObj.target = target.CmdTargetPlayer;
-    
-    if(cmd === "Pause") {
+    if(mediaStatus.paused !== 1) {
         cmdObj.cmd = command.CmdPause;
-        prbutton.disabled = true;
-    } else if(cmd === "Resume") {
-        cmdObj.cmd = command.CmdResume;  
-        prbutton.disabled = true;
     }
+    websocket.send(JSON.stringify(cmdObj));
+}
+
+function sendStop() {
+    var cmdObj = new Object();
+    cmdObj.target = target.CmdTargetPlayer;
+    if(mediaStatus.playing === 1) {
+        cmdObj.cmd = command.CmdStop;  
+    }
+    websocket.send(JSON.stringify(cmdObj));
+}
+
+function sendMute() {
+    var cmdObj = new Object();
+    cmdObj.target = target.CmdTargetPlayer;
+    cmdObj.cmd = command.CmdMute;  
+    websocket.send(JSON.stringify(cmdObj));
+}
+
+function sendUnmute() {
+    var cmdObj = new Object();
+    cmdObj.target = target.CmdTargetPlayer;
+    cmdObj.cmd = command.CmdUnmute;  
     websocket.send(JSON.stringify(cmdObj));
 }
 
@@ -74,9 +95,11 @@ websocket.onmessage = function (evt) {
                 document.getElementById("status").innerHTML = msg;
                 break;
             case evt_ids.MEDIA_STATUS:
+                mediaStatus = obj;
                 document.getElementById("output").innerHTML = msg;
-                document.getElementById("prbutton").innerHTML = obj.paused === 1 ? 'Resume' : 'Pause';
-                prbutton.disabled = false;
+                if(obj.playing === 1) {
+                    document.getElementById("stitle").innerHTML = "Playing: " + obj.uri;
+                }
                 slider.value = obj.pos/obj.dur;
                 break;
             default:
