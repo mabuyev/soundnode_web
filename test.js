@@ -1,4 +1,3 @@
-document.getElementById("test").innerHTML = "WebSocket is not connected";
 
 const msg_types = {
     EVT: 0,
@@ -35,14 +34,19 @@ slider.oninput = function () {
 
 };
 
-function sendPlayResume(text) {
+function sendPlayResume(uri, name) {
     var cmdObj = new Object();
     cmdObj.target = target.CmdTargetPlayer;
     if(mediaStatus.paused === 1) {
         cmdObj.cmd = command.CmdResume;
     } else {
         cmdObj.cmd = command.CmdPlay;
-        cmdObj.uri = text;
+        cmdObj.uri = uri;
+        if(name !== null) {
+            cmdObj.name = name;
+        } else {
+            cmdObj.name = uri;
+        }
     }
     websocket.send(JSON.stringify(cmdObj));
 };
@@ -52,8 +56,8 @@ function sendPause() {
     cmdObj.target = target.CmdTargetPlayer;
     if(mediaStatus.paused !== 1) {
         cmdObj.cmd = command.CmdPause;
+        websocket.send(JSON.stringify(cmdObj));
     }
-    websocket.send(JSON.stringify(cmdObj));
 }
 
 function sendStop() {
@@ -81,7 +85,10 @@ function sendUnmute() {
 
 websocket.onopen = function (evt) {
     console.log('WebSocket connection opened');
-    document.getElementById("test").innerHTML = "WebSocket is connected!";
+    document.getElementById("header").style.background='#666';
+    document.getElementById("pause").style.display = "none";
+    document.getElementById("mute").style.display = "none";
+    document.getElementById("unmute").style.display = "none";
 };
 
 websocket.onmessage = function (evt) {
@@ -98,7 +105,13 @@ websocket.onmessage = function (evt) {
                 mediaStatus = obj;
                 document.getElementById("output").innerHTML = msg;
                 if(obj.playing === 1) {
-                    document.getElementById("stitle").innerHTML = "Playing: " + obj.uri;
+                    if(obj.paused === 1) {
+                        document.getElementById("stitle").innerHTML = "Paused: " + obj.name;
+                        document.getElementById("pause").style.display = "none";
+                    } else {
+                        document.getElementById("stitle").innerHTML = "Playing: " + obj.name;
+                        document.getElementById("pause").style.display = "block";
+                    }
                 }
                 slider.value = obj.pos/obj.dur;
                 break;
@@ -109,6 +122,7 @@ websocket.onmessage = function (evt) {
         break;
     case msg_types.RESP:
         console.log("Response: " + msg);
+        document.getElementById("test").innerHTML = msg;
         break;
     default:
         console.log("Message type not implemented: " + obj.type);
@@ -119,6 +133,7 @@ websocket.onmessage = function (evt) {
 websocket.onclose = function (evt) {
     console.log('Websocket connection closed');
     document.getElementById("test").innerHTML = "WebSocket closed";
+    document.getElementById("header").style.background='red';
 };
 
 websocket.onerror = function (evt) {
