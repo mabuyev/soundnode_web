@@ -18,7 +18,8 @@ const evt_ids = {
         CmdMute: 4,
         CmdUnmute: 5,
         CmdNext: 6,
-        CmdPrev: 7         
+        CmdPrev: 7,
+        CmdSetVol: 8
     };
     
 const target = {
@@ -29,9 +30,18 @@ const target = {
 const websocket = new WebSocket('ws://' + location.hostname + '/');
 const slider = document.getElementById("myRange");
 var mediaStatus = new Object();
+var volume = 0;
 
 slider.oninput = function () {
-
+    var newVol = parseInt(slider.value);
+    if(newVol === volume)
+        return;
+    var cmdObj = new Object();
+    cmdObj.target = target.CmdTargetPlayer;
+    cmdObj.cmd = command.CmdSetVol;
+    cmdObj.param = newVol;
+    volume = newVol;
+    websocket.send(JSON.stringify(cmdObj));
 };
 
 function sendPlayResume(uri, name) {
@@ -113,7 +123,8 @@ websocket.onmessage = function (evt) {
                         document.getElementById("pause").style.display = "block";
                     }
                 }
-                slider.value = obj.pos/obj.dur;
+                volume = obj.volume;
+                slider.value = volume;
                 break;
             default:
                 console.log("Message ID not implemented: " + obj.id);
